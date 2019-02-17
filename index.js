@@ -3,60 +3,106 @@ var shared = require(__dirname + '/public/shared.js')
 var games = {}
 
 class Game {
-  constructor(id) {
-    // boardElement: {open: true|false, flagged: true|false, mine: true|false}
+  // static methods
+  static addUser(userID, gameID) { // add userID to gameID
+    for (var game in games) {
+      if (game == gameID) {
+        if (this.full) {
+          games[gameID].addSpectator(userID)
+          return 2
+        } else {
+          this.full = true;
+          games[gameID].addPlayer2(userID)
+        }
+        
+        return 1 // will not create new game
+      }
+    }
+    
+    games[gameID] = new Game(gameID, userID) // this will not execute due to the return if the game was found
+    return 0
+  }
+  
+  // constructor
+  constructor(id, player1ID) {
+    // tile: {open: true|false, flagged: true|false, isMine: true|false, surrounding: 0-8} // isMine: will it explode? mine: does it belong to me?
     this.players = {
       0: {
+        id: player1ID,
         ready: false,
-        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols, {open: false, flagged: false, mine: false, surrounding: 0})
+        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols, {open: false, flagged: false, isMine: false, surrounding: 0}) // isMine: will it explode? mine: does it belong to me?
       },
       1: {
+        id: "",
         ready: false,
-        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols, {open: false, flagged: false, mine: false, surrounding: 0})
+        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols, {open: false, flagged: false, isMine: false, surrounding: 0}) // isMine: will it explode? mine: does it belong to me?
       }
     }
     this.full = false
-    this.observers = 0
+    this.spectators = []
     this.id = id
+    this.ready = false
   }
   
-  addPlayer1() {
+  // instance methods
+  startGame() {
+    if (this.players[0].ready && this.players[1].ready) {
+      this.ready = true
+    }
+  }
+  
+  playerReady(playerID) {
+    if (this.players[0].id == playerID) {
+      this.players[0].ready = true
+    }
     
-  }
-  
-  addPlayer2() {
+    if (this.players[1].id == playerID) {
+      this.players[1].ready = true
+    }
     
+    this.startGame()
   }
   
-  clientView(end = -1) {
-    // in: [[[{open: true|false, flagged: true|false, mine: true|false, surrounding: 0-8}]]]
-    // out: [[[{open: true|false, flagged: true|false, mine(some hidden): true|false, surrounding(some hidden): 0-8}]]]
-    boards = [this.players[0].board, this.player[1].board]
+  addPlayer2(playerID) {
+    this.players[1].id = playerID
+  }
+  
+  addSpectator(spectatorID) {
+    this.spectators.push(spectatorID)
+    // TODO
+  }
+  
+  clientView(end = null) {
+    // in: [[[{open: true|false, flagged: true|false, isMine: true|false, surrounding: 0-8}]]]
+    // out: [[[{open: true|false, flagged: true|false, isMine(some hidden): true|false, surrounding(some hidden): 0-8}]]]
+    let boards = [this.players[0].board, this.players[1].board]
+    console.log("7: " + this.players[0].board[1][1].open);
     for (var board in boards) { // 2
       for (var row in board) { // rows
         for (var tile in row) { // cols
-          if (boards[board][row][tile].closed) { // if tile is closed, hide the things
-            boards[board][row][tile].mine = false // tile aka col
+          if (!boards[board][row][tile].open) { // if tile is closed, hide the things
+            boards[board][row][tile].isMine = false // tile aka col // isMine: will it explode? mine: does it belong to me?
             boards[board][row][tile].surr = 0 // tile aka col
           }
         }
       }
     }
+    console.log("8: " + this.players[0].board[1][1].open);
     boards.end = end
     return boards
   }
   
   addMine(fromPlayer) { // fromPlayer is the player that added the mine, make the 
     // add a random mine to !fromPlayer
-    row = Math.random() * this.players[0].board.length
-    col = Math.random() * this.players[0].board[0].length
-    if (this.players[fromPlayer?0:1].board[row][col].open || this.players[fromPlayer?0:1].board[row][col].mine) { return addMine(fromPlayer) } // not a recursive result, im just lazy
-    this.players[fromPlayer?0:1].board[row][col].mine = true
+    let row = shared.randRange(this.players[0].board.length)
+    let col = shared.randRange(this.players[0].board[0].length)
+    if (this.players[fromPlayer?0:1].board[row][col].open || this.players[fromPlayer?0:1].board[row][col].isMine) { return this.addMine(fromPlayer) } // not a recursive result, im just lazy // isMine: will it explode? mine: does it belong to me?
+    this.players[fromPlayer?0:1].board[row][col].isMine = true // isMine: will it explode? mine: does it belong to me?
     
     // increment the .surr in the surr fields
     for (var i = -1; i < 2; i++) {
       for (var j = -1; j < 2; j++){
-        if (!(j||i)) {continue} // i==j==0
+        if (!(j||i) || i<0 || j<0 || (i>this.players[fromPlayer?0:1].board.length) || (j>this.players[fromPlayer?0:1].board[i].length)) {continue} // i==j==0
         this.players[fromPlayer?0:1].board[i][j].surr++
       }
     }
@@ -64,28 +110,38 @@ class Game {
   
   updateBoard(action) {
     // action: {person: 0|1, type: "open|flag", row: 0-max, col: 0-max}
-    
-    // flagging a closed tile toggles the flagged state
-    // flagging an open tile does nothing
-    // opening a flagged does nothing
-    // opening an open tile does nothing
-    // opening a mine tile calls endgame
-    if (action.type == "flag") {
-        if (!players[action.person].board[action.row][action.col].open) { // if closed
-          players[action.person].board[action.row][action.col].flagged = !players[action.person].board[action.row][action.col].flagged // toggle flagged state
-        }
-    } else {
-        if (!players[action.person].board[action.row][action.col].flagged && !players[action.person].board[action.row][action.col].open) { // if not open and not flagged
-          players[action.person].board[action.row][action.col].open = true
-          if (players[action.person].board[action.row][action.col].mine) {
-            return this.clientView(person)
+    if (this.ready) {
+      console.log("1: " + this.players[0].board[1][1].open);
+      // flagging a closed tile toggles the flagged state
+      // flagging an open tile does nothing
+      // opening a flagged does nothing
+      // opening an open tile does nothing
+      // opening a mine tile calls endgame
+      if (action.type == "flag") {
+          if (!this.players[action.person].board[action.row][action.col].open) { // if closed
+            this.players[action.person].board[action.row][action.col].flagged = !this.players[action.person].board[action.row][action.col].flagged // toggle flagged state
+            
+            console.log("2: " + this.players[0].board[1][1].open);
           }
-        }
+      } else {
+          if (!this.players[action.person].board[action.row][action.col].flagged && !this.players[action.person].board[action.row][action.col].open) { // if not open and not flagged
+            console.log("3: " + this.players[0].board[1][1].open);
+            console.log(action.person + " " + action.row + " " + action.col);
+            ((this.players[action.person]).board[action.row][action.col]).open = true
+            console.log("3.5: " + this.players[0].board[1][1].open);
+            if (this.players[action.person].board[action.row][action.col].isMine) { // isMine: will it explode? mine: does it belong to me?
+            console.log("4: " + this.players[0].board[1][1].open);
+              return this.clientView(person)
+            }
+          }
+      }
+      
+      console.log("5: " + this.players[0].board[1][1].open);
+      this.addMine(action.person)
     }
     
-    addMine(action.person)
-    
-    return this.clientView() // gets [board1, board2]
+    console.log("6: " + this.players[0].board[1][1].open);
+    return this.clientView() // gets [board1, board2, end:true|false]
   }
 }
 
@@ -110,16 +166,49 @@ var io = require('socket.io')(http)
 
 app.use(express.static('public'))
 
-app.post('/createGame', function (req, res) {
-  let gameID = shares.makeToken(shared.CONST.gameIDLength, games)
-  games[gameID] = new Game(gameID)
-  res.redirect('/game/' + gameID)
+app.get('/createGame/', function (req, res) {
+  console.log("request for /createGame/")
+  res.redirect('/game/' + shared.makeToken(shared.CONST.gameIDLength, games))
 });
 
 app.get('/game/*', function(req, res){
+  console.log("GET /game/x: x unknown")
   res.sendFile(__dirname + '/public/game.html')
-});
+})
 
-http.listen(3000, function(){
-  console.log('listening on *:3000')
-});
+io.on('connection', function(socket) {
+  let thisGame = ""
+  
+  console.log("socket user " + socket.id + " connected")
+  socket.emit('whatGame', socket.id)
+  
+  socket.on('myGame', function(myGame) {
+    console.log("recieved `myGame`: " + myGame)
+    thisGame = myGame
+    socket.join(thisGame)
+    let whichAmI = Game.addUser(socket.id, thisGame) // this is a static method to account for new games
+    
+    console.log("sending `whichAmI`: " + whichAmI);
+    socket.emit('whichAmI', {which: whichAmI, game: games[thisGame].clientView()})
+  })
+  
+  socket.on('ready', function(ready) {
+    console.log("recieved `ready`: " + ready[0] + " " + ready[1])
+    games[ready[0]].playerReady(ready[1])
+  }) // ready: [gameID, playerID]
+  
+  socket.on('action', function(action) { // action is of format {person: 0|1, type: "open|flag", row: 0-max, col: 0-max}
+    console.log("recieved `action`: " + action)
+    console.log("sending `update`: " + thisGame)
+    io.to(thisGame).emit('update', games[thisGame].updateBoard(action))
+  })
+  
+  socket.on('disconnect', function(data){
+    console.log("recieved `disconnect`: " + data)
+    // TODO
+  })
+})
+
+http.listen(8974, function(){
+  console.log('listening on *:8974')
+})

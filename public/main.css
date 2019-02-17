@@ -1,0 +1,52 @@
+div#display {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas: "title ready"
+                       "left right";
+}
+
+h1#title {
+  grid-area: title;
+}
+
+div#ready {
+  grid-area: ready;
+}
+
+div#myBoardContainer {
+  grid-area: left;
+}
+
+div#otherBoardContainer {
+  grid-area: right;
+}
+
+div.boardContainer {
+  padding-left: 3em;
+}
+
+table.gameboard {
+  border-collapse: separate;
+}
+
+td.tile {
+  cursor: pointer;
+  color: #CBCBCC;
+  width: 2em;
+  height: 2em;
+  background-color: #CBCBCC;
+  border-right: 5px solid #929292;
+  border-bottom: 5px solid #929292;
+  border-top: 5px solid #FFFFFF;
+  border-left: 5px solid #FFFFFF;
+}
+
+td.tile[open] {
+  color: black;
+  background-color: #CBCBCC;
+  border-right: 5px solid #CBCBCC;
+  border-bottom: 5px solid #CBCBCC;
+  border-top: 5px solid #929292;
+  border-left: 5px solid #929292;
+}
