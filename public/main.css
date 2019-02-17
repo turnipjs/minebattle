@@ -79,3 +79,20 @@ td.tile[surrounding="7"] {
 td.tile[surrounding="8"] {
   color: #444;
 }
+
+td.tile.flagged {
+  color: red;
+  font-weight: bold;
+  content: "F";
+}
+
+td.tile.isMine {
+  color: red;
+  font-weight: bold;
+}
+
+td.tile.open.isMine {
+  background-color: red;
+  color: white;
+  border: 5px solid red;
+}

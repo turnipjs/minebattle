@@ -82,7 +82,7 @@ class Game {
         for (var tile in row) { // cols
           if (!boards[board][row][tile].open) { // if tile is closed, hide the things
             boards[board][row][tile].isMine = false // tile aka col // isMine: will it explode? mine: does it belong to me?
-            boards[board][row][tile].surrrounding = 0 // tile aka col
+            boards[board][row][tile].surrounding = 0 // tile aka col
           }
         }
       }
@@ -102,8 +102,11 @@ class Game {
     // increment the .surr in the surr fields
     for (var i = -1; i < 2; i++) {
       for (var j = -1; j < 2; j++){
-        if (!(j||i) || i<0 || j<0 || (i>this.players[fromPlayer?0:1].board.length) || (j>this.players[fromPlayer?0:1].board[i].length)) {continue} // i==j==0
-        this.players[fromPlayer?0:1].board[i][j].surr++
+        if ((j==0 && i==0) || (row + i)<0 || (col + j)<0 || ((row + i) > 29) || ((col + j) > 15)) {continue;} // i==j==0
+        console.log(""+row+" "+i+" "+col+" "+j);
+        console.log(this.players[fromPlayer?0:1].board[i + row]);
+        console.log(++this.players[fromPlayer?0:1].board[i + row][j + col].surrounding);
+        // this.players[fromPlayer?0:1].board[i + row][j + col].surrounding++
       }
     }
   } // NEVER USE THE RETURN VALUE OF THIS FUNCTION, IT IS USELESS
@@ -125,6 +128,7 @@ class Game {
           if (!this.players[action.person].board[action.row][action.col].flagged && !this.players[action.person].board[action.row][action.col].open) { // if not open and not flagged
             ((this.players[action.person]).board[action.row][action.col]).open = true;
             if (this.players[action.person].board[action.row][action.col].isMine) { // isMine: will it explode? mine: does it belong to me?
+              io.to(this.id).emit('lose', action.person)
               return this.clientView(action.person)
             }
           }

@@ -27,6 +27,14 @@ socket.on('whichAmI', function(data) {
   render(data.game);
 });
 
+socket.on('lose', function(which) {
+  if (which == me.which) {
+    $("#gameID").html("<span style='color:red;'>You Lost!!!!!!</span>")
+  } else {
+    $("#gameID").html("<span style='color:red;'>You Won!!!!!!</span>")
+  }
+});
+
 
 function render(game) { // game: [board0, board1]
   console.log("rendering:");
@@ -45,7 +53,7 @@ function render(game) { // game: [board0, board1]
     output += `<tr class="mine row" row="${i}">`
     for (var j = 0; j < mine[0].length; j++) {
       let tile = mine[i][j]; // tile: {open: true|false, flagged: true|false, isMine: true|false, surrounding: 0-8}
-      output += `<td class="mine tile ${tile.open?"open":""} ${tile.flagged?"flagged":""} ${tile.isMine?"isMine":""}" ${tile.open?('surrounding="' + tile.surrounding + '"'):''} row="${i}" col="${j}">${tile.surrounding}</td>`; // isMine: will it explode? mine: does it belong to me?
+      output += `<td class="mine tile ${tile.open?"open":""} ${tile.flagged?"flagged":""} ${tile.isMine?"isMine":""}" ${tile.open?('surrounding="' + tile.surrounding + '"'):''} row="${i}" col="${j}">${tile.flagged?"F":(tile.isMine?"*":tile.surrounding)}</td>`; // isMine: will it explode? mine: does it belong to me?
     }
     output += `</tr>`;
   }
@@ -56,7 +64,7 @@ function render(game) { // game: [board0, board1]
     output += `<tr class="other row" row="${i}">`
     for (var j = 0; j < other[0].length; j++) {
       let tile = other[i][j]; // tile: {open: true|false, flagged: true|false, isMine: true|false, surrounding: 0-8}
-      output += `<td class="other tile ${tile.open?"open":""} ${tile.flagged?"flagged":""} ${tile.isMine?"isMine":""}" ${tile.open?('surrounding="' + tile.surrounding + '"'):''} row="${i}" col="${j}">${tile.surrounding}</td>`; // isMine: will it explode? mine: does it belong to me?
+      output += `<td class="other tile ${tile.open?"open":""} ${tile.flagged?"flagged":""} ${tile.isMine?"isMine":""}" ${tile.open?('surrounding="' + tile.surrounding + '"'):''} row="${i}" col="${j}">${tile.flagged?"F":(tile.isMine?"*":tile.surrounding)}</td>`; // isMine: will it explode? mine: does it belong to me?
     }
     output += `</tr>`;
   }
@@ -92,3 +100,5 @@ $("#readyButton").click(function() {
   console.log("sending `ready`");
   socket.emit('ready', [me.game, me.id]);
 });
+
+$("#gameID").html(window.location.pathname.slice(-(shared.CONST.gameIDLength)))
