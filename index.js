@@ -30,12 +30,12 @@ class Game {
       0: {
         id: player1ID,
         ready: false,
-        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols, {open: false, flagged: false, isMine: false, surrounding: 0}) // isMine: will it explode? mine: does it belong to me?
+        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols) // isMine: will it explode? mine: does it belong to me?
       },
       1: {
         id: "",
         ready: false,
-        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols, {open: false, flagged: false, isMine: false, surrounding: 0}) // isMine: will it explode? mine: does it belong to me?
+        board: shared.makeArray(shared.CONST.defaultRows, shared.CONST.defaultCols) // isMine: will it explode? mine: does it belong to me?
       }
     }
     this.full = false
@@ -82,7 +82,7 @@ class Game {
         for (var tile in row) { // cols
           if (!boards[board][row][tile].open) { // if tile is closed, hide the things
             boards[board][row][tile].isMine = false // tile aka col // isMine: will it explode? mine: does it belong to me?
-            boards[board][row][tile].surr = 0 // tile aka col
+            boards[board][row][tile].surrrounding = 0 // tile aka col
           }
         }
       }
@@ -111,7 +111,6 @@ class Game {
   updateBoard(action) {
     // action: {person: 0|1, type: "open|flag", row: 0-max, col: 0-max}
     if (this.ready) {
-      console.log("1: " + this.players[0].board[1][1].open);
       // flagging a closed tile toggles the flagged state
       // flagging an open tile does nothing
       // opening a flagged does nothing
@@ -121,26 +120,19 @@ class Game {
           if (!this.players[action.person].board[action.row][action.col].open) { // if closed
             this.players[action.person].board[action.row][action.col].flagged = !this.players[action.person].board[action.row][action.col].flagged // toggle flagged state
             
-            console.log("2: " + this.players[0].board[1][1].open);
           }
       } else {
           if (!this.players[action.person].board[action.row][action.col].flagged && !this.players[action.person].board[action.row][action.col].open) { // if not open and not flagged
-            console.log("3: " + this.players[0].board[1][1].open);
-            console.log(action.person + " " + action.row + " " + action.col);
-            ((this.players[action.person]).board[action.row][action.col]).open = true
-            console.log("3.5: " + this.players[0].board[1][1].open);
+            ((this.players[action.person]).board[action.row][action.col]).open = true;
             if (this.players[action.person].board[action.row][action.col].isMine) { // isMine: will it explode? mine: does it belong to me?
-            console.log("4: " + this.players[0].board[1][1].open);
-              return this.clientView(person)
+              return this.clientView(action.person)
             }
           }
       }
       
-      console.log("5: " + this.players[0].board[1][1].open);
       this.addMine(action.person)
     }
     
-    console.log("6: " + this.players[0].board[1][1].open);
     return this.clientView() // gets [board1, board2, end:true|false]
   }
 }

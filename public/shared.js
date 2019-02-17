@@ -1,7 +1,7 @@
 (function(exports){
   console.log("shared is loading");
-  exports.makeArray = function(rows, columns, fill) {
-    console.log("makeArray " + rows + " " + columns + " " + fill)
+  exports.makeArray = function(rows, columns) {
+    console.log("makeArray " + rows + " " + columns)
     var arr = new Array(rows);
     
     for (var i = 0; i < arr.length; i++) {
@@ -9,7 +9,7 @@
     }
     for (var i = 0; i < arr.length; i++) {
       for (var j = 0; j < arr[0].length; j++) {
-        arr[i][j] = fill;
+        arr[i][j] = {open: false, flagged: false, isMine: false, surrounding: 0}; // bug fix courtesy of dragonballzeke
       }
     }
     return arr;

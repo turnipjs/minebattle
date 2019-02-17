@@ -42,11 +42,40 @@ td.tile {
   border-left: 5px solid #FFFFFF;
 }
 
-td.tile[open] {
+td.tile.open {
   color: black;
   background-color: #CBCBCC;
   border-right: 5px solid #CBCBCC;
   border-bottom: 5px solid #CBCBCC;
   border-top: 5px solid #929292;
   border-left: 5px solid #929292;
+}
+
+td.tile[surrounding="0"] {
+  color: #CBCBCC;
+}
+td.tile[surrounding="1"] {
+  color: blue;
+}
+td.tile[surrounding="2"] {
+  color: green;
+}
+td.tile[surrounding="3"] {
+  color: red;
+}
+td.tile[surrounding="4"] {
+  color: purple;
+}
+td.tile[surrounding="5"] {
+  color: maroon;
+}
+td.tile[surrounding="6"] {
+  color: turquoise;
+}
+td.tile[surrounding="7"] {
+  color: black;
+}
+
+td.tile[surrounding="8"] {
+  color: #444;
 }
