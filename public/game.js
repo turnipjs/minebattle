@@ -28,6 +28,7 @@ socket.on('whichAmI', function(data) {
 });
 
 socket.on('lose', function(which) {
+  console.log("recieved `lose`");
   if (which == me.which) {
     $("#gameID").html("<span style='color:red;'>You Lost!!!!!!</span>")
   } else {

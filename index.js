@@ -128,7 +128,9 @@ class Game {
           if (!this.players[action.person].board[action.row][action.col].flagged && !this.players[action.person].board[action.row][action.col].open) { // if not open and not flagged
             ((this.players[action.person]).board[action.row][action.col]).open = true;
             if (this.players[action.person].board[action.row][action.col].isMine) { // isMine: will it explode? mine: does it belong to me?
-              io.to(this.id).emit('lose', action.person)
+              console.log("emitting `lose`: " + action.person);
+              io.to(this.id).emit('lose', action.person);
+            this.ready = false;
               return this.clientView(action.person)
             }
           }
